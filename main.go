@@ -27,6 +27,8 @@ func main() {
 	queueName := "GolangRabbitConnectorMessageQueue"
 
 	publish(message, queueName)
+
+	consume(queueName)
 }
 
 func publish(message GolangRabbitConnectorMessage, queueName string) {
@@ -96,6 +98,32 @@ func send(message GolangRabbitConnectorMessage, queueName string) {
 	ch.Close()
 }
 
-func consume() {
+func consume(queueName string) {
+	var ch *amqp.Channel
+	var err error
 
+	ch, err = getConnection()
+	if err != nil {
+		fmt.Printf("There is an error. Error: %s", err.Error())
+	}
+
+	msgs, err := ch.Consume(
+		queueName, // queue
+		"",        // consumer
+		true,      // auto-ack
+		false,     // exclusive
+		false,     // no-local
+		false,     // no-wait
+		nil,       // args
+	)
+
+	if err != nil {
+		fmt.Printf("Consumer can not be declared. Error: %s", err.Error())
+	}
+
+	for msg := range msgs {
+		fmt.Printf("%v", string(msg.Body))
+	}
+
+	ch.Close()
 }
